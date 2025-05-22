@@ -30,6 +30,7 @@ void verify_winding(f32* ax, f32* ay, f32* bx, f32* by, f32* cx, f32* cy);
 u8 ui_button(i32 x, i32 y, i32 w, i32 h, const char* text);
 u8 ui_inputbox(i32 x, i32 y, i32 w, i32 h, char* buffer, i32 bufferSize); // max 1 call per frame
 u8 ui_save_menu(char* saveBuf, i32 saveBufSize, f32 verts[SFR_FONT_GLYPH_MAX][SFR_FONT_VERT_MAX]);
+u8 ui_load_menu(char* saveBuf, i32 saveBufSize, f32 verts[SFR_FONT_GLYPH_MAX][SFR_FONT_VERT_MAX]);
 
 void font_save(const char* name, f32 verts[SFR_FONT_GLYPH_MAX][SFR_FONT_VERT_MAX]);
 
@@ -118,8 +119,17 @@ i32 main(void) {
             static u8 saving = 0;
             static char saveBuf[64] = "";
 
+            static u8 loading = 0;
+            static char loadBuf[256] = "";
+
             if (saving) {
                 saving = ui_save_menu(saveBuf, sizeof(saveBuf), verts);
+                EndDrawing();
+                continue;
+            }
+
+            if (loading) {
+                loading = ui_load_menu(loadBuf, sizeof(loadBuf), verts);
                 EndDrawing();
                 continue;
             }
@@ -133,12 +143,7 @@ i32 main(void) {
                     }
                 }
 
-                if (ui_button(110, 20, 80, 30, "Save")) {
-                    saveBuf[0] = '\0';
-                    saving = 1;
-                }
-
-                if (ui_button(200, 20, 140, 30, "Delete Prev")) {
+                if (ui_button(110, 20, 140, 30, "Delete Prev")) {
                     if (vertInd >= 6) {
                         vertInd -= 6;
                         for (i32 i = vertInd; i < vertInd + 6; i += 1) {
@@ -146,6 +151,16 @@ i32 main(void) {
                         }
                         pointInd = 0;
                     }
+                }
+
+                if (ui_button(260, 20, 80, 30, "Save")) {
+                    saveBuf[0] = '\0';
+                    saving = 1;
+                }
+
+                if (ui_button(350, 20, 80, 30, "Load")) {
+                    loadBuf[0] = '\0';
+                    loading = 1;
                 }
 
                 // input for glyph ind
@@ -324,7 +339,7 @@ u8 ui_save_menu(char* saveBuf, i32 saveBufSize, f32 verts[SFR_FONT_GLYPH_MAX][SF
     const i32 h = 50;
 
     DrawText("Enter your font's name in the text box\nPress Cancel to go back", 20, 20, 30, WHITE);
-    ui_inputbox(windowWidth / 2 - w / 2, windowHeight / 2 - h / 2 - 10, w, h, saveBuf, sizeof(saveBuf));
+    ui_inputbox(windowWidth / 2 - w / 2, windowHeight / 2 - h / 2 - 10, w, h, saveBuf, saveBufSize);
     
     if (ui_button(windowWidth / 2 - w / 2, windowHeight / 2 - h / 2 + 60, w / 2 - 5, 50, "Cancel")) {
         return 0;
@@ -332,6 +347,37 @@ u8 ui_save_menu(char* saveBuf, i32 saveBufSize, f32 verts[SFR_FONT_GLYPH_MAX][SF
 
     if (ui_button(windowWidth / 2 + 5, windowHeight / 2 - h / 2 + 60, w / 2 - 5, 50, "Confirm")) {
         font_save(saveBuf, verts);
+        return 0;
+    }
+
+    return 1;
+}
+
+u8 ui_load_menu(char* loadBuf, i32 loadBufSize, f32 verts[SFR_FONT_GLYPH_MAX][SFR_FONT_VERT_MAX]) {
+    const i32 w = 500;
+    const i32 h = 50;
+
+    DrawText("Enter relative path to .srft font\nPress Cancel to go back", 20, 20, 30, WHITE);
+    ui_inputbox(windowWidth / 2 - w / 2, windowHeight / 2 - h / 2 - 10, w, h, loadBuf, loadBufSize);
+
+    if (ui_button(windowWidth / 2 - w / 2, windowHeight / 2 - h / 2 + 60, w / 2 - 5, 50, "Cancel")) {
+        return 0;
+    }
+
+    if (ui_button(windowWidth / 2 + 5, windowHeight / 2 - h / 2 + 60, w / 2 - 5, 50, "Confirm")) {
+        sfrfont_t* font = sfr_load_font(loadBuf);
+        if (!font) {
+            return 1;
+        }
+
+        for (i32 i = 0; i < SFR_FONT_GLYPH_MAX; i += 1) {
+            for (i32 j = 0; j < SFR_FONT_VERT_MAX; j += 1) {
+                verts[i][j] = font->verts[i][j];
+            }
+        }
+
+        sfr_release_font(&font);
+
         return 0;
     }
 
