@@ -7,7 +7,7 @@ As of right now, this is pretty barebones and I'm sure has bugs, but it is useab
 
 ---
 
-[*sofren font-starter-sdl2.c*](https://github.com/cyprus327/sofren/blob/main/examples/font-starter-sdl2.c)
+[*Example of using a font created with this tool in sofren*](https://github.com/cyprus327/sofren/blob/main/examples/font-starter-sdl2.c)
 
 ![sfrfontdemo1](https://github.com/user-attachments/assets/87f62598-b39e-4d04-b19d-0f97ddba1622)
 
@@ -34,7 +34,6 @@ in general in multiple areas. However, I don't think there's currently a need fo
 ```
 
 ## Todos
-- Loading already made fonts
 - Better "drawing"
 - Overlay translucent glyphs to trace
-- Misc. bugfixes
+- Miscelanious bugfixes
